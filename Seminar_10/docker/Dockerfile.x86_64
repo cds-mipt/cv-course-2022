@@ -1,0 +1,27 @@
+FROM "osrf/ros:melodic-desktop-full"
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    python-pip \
+    sudo \
+    tmux \
+    ros-melodic-ackermann-msgs \
+    ros-melodic-derived-object-msgs \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG CARLA_VERSION
+RUN pip install --upgrade pip
+RUN pip install carla==${CARLA_VERSION} pygame jupyter
+
+# add user and his password
+ARG USER=docker_carla
+ARG UID=1000
+ARG GID=1000
+# default password
+ARG PW=user
+
+RUN useradd -m ${USER} --uid=${UID} && echo "${USER}:${PW}" | chpasswd && adduser ${USER} sudo
+WORKDIR /home/${USER}
+USER ${UID}:${GID}
